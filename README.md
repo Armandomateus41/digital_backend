@@ -84,30 +84,21 @@ curl -i -s -X POST http://localhost:3000/admin/documents \
 curl -s http://localhost:3000/health
 ```
 
-## Deploy no Render
-1. Criar serviço Web (Node 20) apontando para este repositório.
-2. Build Command:
-```
-pnpm install --frozen-lockfile=false && pnpm -F @digisign/api build
-```
-3. Start Command:
-```
-node apps/api/dist/main.js
-```
-4. Variáveis de ambiente (Render):
-- `NODE_VERSION=20`
-- `DATABASE_URL` (com `?sslmode=require`)
-- `JWT_SECRET`, `JWT_EXPIRES_IN`
-- `CORS_ORIGINS`
-- `STRICT_STORAGE=true|false`
-- `LOG_LEVEL=info`
-- (Opcional S3) `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`
-
-5. Pós-deploy (prisma):
-- Rodar uma vez no shell do Render (ou via Job):
+## Deploy no Render (via Docker + render.yaml)
+1) Certifique-se de que o `render.yaml` está na raiz (já incluso). No Render, crie um novo Web Service escolhendo "Use existing render.yaml".
+2) Variáveis no Render (Edit > Environment):
+   - `DATABASE_URL` (com `?sslmode=require`)
+   - `JWT_SECRET`, `JWT_EXPIRES_IN`
+   - `CORS_ORIGINS` (ex.: `https://seu-front.exemplo.com`)
+   - `STRICT_STORAGE` (`false` por padrão)
+   - (Opcional S3) `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`
+3) Pós-deploy (uma vez por ambiente):
 ```
 pnpm -F @digisign/api prisma:deploy && pnpm -F @digisign/api seed
 ```
+4) Verificação:
+   - `GET /health` deve retornar `{"status":"ok",...}`
+   - `GET /docs` (Swagger) disponível em não‑prod
 
 ## Testes
 - Unit e e2e com Jest/Supertest
