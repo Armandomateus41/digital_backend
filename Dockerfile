@@ -28,6 +28,7 @@ FROM base AS runtime
 ENV NODE_ENV=production
 WORKDIR /workspace
 COPY --from=deps /workspace/node_modules ./node_modules
+COPY --from=deps /workspace/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /workspace/apps/api/dist ./apps/api/dist
 COPY --from=build /workspace/apps/api/package.json ./apps/api/package.json
 EXPOSE 3000
