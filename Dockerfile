@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7-labs
 
-ARG NODE_VERSION=20-alpine
+ARG NODE_VERSION=20-bullseye-slim
 
 FROM node:${NODE_VERSION} AS base
 ENV PNPM_HOME=/usr/local/share/pnpm
@@ -27,6 +27,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 FROM base AS runtime
 ENV NODE_ENV=production
 WORKDIR /workspace
+# OpenSSL/CA (glibc) for Prisma engines
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libssl1.1 ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /workspace/node_modules ./node_modules
 COPY --from=deps /workspace/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /workspace/apps/api/dist ./apps/api/dist
