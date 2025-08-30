@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -8,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
@@ -18,6 +19,11 @@ class LoginDto {
 
   @IsString()
   password!: string;
+
+  // Permite login passando `cpf` como alias de `identifier`
+  @IsOptional()
+  @IsString()
+  cpf?: string;
 }
 
 @Controller('auth')
@@ -30,7 +36,18 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   login(@Body() body: LoginDto) {
-    return this.auth.login(body.identifier, body.password);
+    const identifier =
+      typeof body.identifier === 'string' && body.identifier.trim().length > 0
+        ? body.identifier
+        : typeof body.cpf === 'string'
+          ? body.cpf
+          : undefined;
+    if (!identifier)
+      throw new BadRequestException({
+        code: 'INVALID_BODY',
+        message: 'identifier or cpf is required',
+      });
+    return this.auth.login(identifier, body.password);
   }
 
   @Get('session')
