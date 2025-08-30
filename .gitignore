@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+apps/api/dist/
+coverage/
+
+# Env
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Prisma
+prisma/dev.db*
+
+# Docker
+*.local.env

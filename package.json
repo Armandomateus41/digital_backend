@@ -1,0 +1,27 @@
+{
+  "name": "digisign-flow",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.6.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @digisign/api dev",
+    "build": "pnpm --filter @digisign/api build",
+    "start": "pnpm --filter @digisign/api start",
+    "start:prod": "pnpm --filter @digisign/api start:prod",
+    "lint": "pnpm --filter @digisign/api lint",
+    "format": "pnpm --filter @digisign/api format",
+    "test": "pnpm --filter @digisign/api test",
+    "test:e2e": "pnpm --filter @digisign/api test:e2e",
+    "prisma:generate": "pnpm -F @digisign/api exec prisma generate --schema=../../prisma/schema.prisma",
+    "prisma:migrate": "pnpm -F @digisign/api exec prisma migrate dev --schema=../../prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}

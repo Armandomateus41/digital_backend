@@ -1,0 +1,10 @@
+node_modules
+.git
+.vscode
+.idea
+.env
+**/*.log
+coverage
+apps/api/dist
+Dockerfile*
+README.md

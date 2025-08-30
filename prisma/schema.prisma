@@ -1,0 +1,75 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String
+  role         Role        @default(user)
+  createdAt    DateTime    @default(now())
+  documents    Document[]
+  auditLogs    AuditLog[]
+}
+
+model Document {
+  id             String   @id @default(uuid())
+  title          String
+  mimeType       String
+  size           Int
+  storageKey     String
+  contentSha256  String   @unique
+  createdAt      DateTime @default(now())
+  createdById    String
+  createdBy      User     @relation(fields: [createdById], references: [id])
+  signatures     Signature[]
+
+  @@index([createdAt])
+  @@index([title])
+}
+
+enum SignatureStatus {
+  PENDING
+  SIGNED
+}
+
+model Signature {
+  id          String           @id @default(uuid())
+  documentId  String
+  document    Document         @relation(fields: [documentId], references: [id])
+  name        String
+  cpf         String
+  status      SignatureStatus  @default(PENDING)
+  signedAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([documentId])
+  @@index([status])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id])
+  action     String
+  targetType String
+  targetId   String
+  data       Json?
+  requestId  String?
+  createdAt  DateTime @default(now())
+
+  @@index([requestId])
+  @@index([createdAt])
+}
