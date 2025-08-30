@@ -23,6 +23,8 @@ async function bootstrap() {
     .filter(Boolean);
   app.enableCors({
     origin: origins.length > 0 ? origins : true,
+    credentials: true,
+    allowedHeaders: ['authorization', 'content-type', 'x-request-id'],
     exposedHeaders: ['x-request-id', 'location', 'etag'],
   });
 
