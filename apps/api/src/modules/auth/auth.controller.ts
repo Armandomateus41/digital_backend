@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { IsString } from 'class-validator';
 import { JwtService } from '@nestjs/jwt';
@@ -14,7 +22,10 @@ class LoginDto {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService, private readonly jwt: JwtService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly jwt: JwtService,
+  ) {}
 
   @Post('login')
   @HttpCode(200)
@@ -24,20 +35,31 @@ export class AuthController {
 
   @Get('session')
   @HttpCode(200)
-  session(@Req() req: any) {
-    const header: string | undefined = req.headers['authorization'];
+  session(@Req() req: { headers: Record<string, unknown> }) {
+    const authRaw = req.headers['authorization'];
+    const header: string | undefined =
+      typeof authRaw === 'string' ? authRaw : undefined;
     if (!header?.startsWith('Bearer ')) {
       return { authenticated: false };
     }
     const token = header.substring('Bearer '.length);
     try {
-      const payload = this.jwt.verify(token, { secret: process.env.JWT_SECRET ?? 'change-me' }) as any;
-      const role = payload?.role ? String(payload.role).toUpperCase() : undefined;
+      const payloadUnknown: unknown = this.jwt.verify(token, {
+        secret: process.env.JWT_SECRET ?? 'change-me',
+      });
+      const payload =
+        payloadUnknown && typeof payloadUnknown === 'object'
+          ? (payloadUnknown as Record<string, unknown>)
+          : {};
+      const role =
+        typeof payload.role === 'string'
+          ? String(payload.role).toUpperCase()
+          : undefined;
       return {
         authenticated: true,
         role,
-        email: payload?.email ?? undefined,
-        exp: payload?.exp ?? undefined,
+        email: typeof payload.email === 'string' ? payload.email : undefined,
+        exp: typeof payload.exp === 'number' ? payload.exp : undefined,
       };
     } catch {
       return { authenticated: false };
@@ -46,7 +68,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  me(@Req() req: any) {
+  me(@Req() req: { user?: { userId?: string; role?: string } }) {
     return req.user ?? null;
   }
 }

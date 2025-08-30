@@ -1,4 +1,12 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger, PayloadTooLargeException } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Logger,
+  PayloadTooLargeException,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 
 @Catch()
@@ -20,20 +28,33 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (typeof res === 'string') {
         message = res;
       } else if (typeof res === 'object' && res) {
-        const anyRes = res as Record<string, any>;
-        message = anyRes.message ?? message;
-        code = anyRes.code ?? (status === 401 ? 'INVALID_CREDENTIALS' : code);
+        const obj = res as Record<string, unknown>;
+        const maybeMessage = obj.message;
+        const maybeCode = obj.code;
+        if (typeof maybeMessage === 'string') message = maybeMessage;
+        if (typeof maybeCode === 'string') code = maybeCode;
+        else if (status === HttpStatus.UNAUTHORIZED)
+          code = 'INVALID_CREDENTIALS';
       }
       if (exception instanceof PayloadTooLargeException) {
         code = 'UPLOAD_TOO_LARGE';
       }
     } else if (exception && typeof exception === 'object') {
-      const err = exception as any;
-      message = err.message || message;
-      code = err.code || code;
+      const err = exception as Record<string, unknown>;
+      const maybeMessage = err.message;
+      const maybeCode = err.code;
+      if (typeof maybeMessage === 'string') message = maybeMessage;
+      if (typeof maybeCode === 'string') code = maybeCode;
     }
 
-    this.logger.error({ status, code, message, requestId: request.requestId }, (exception as any)?.stack);
+    const stack =
+      typeof (exception as { stack?: unknown })?.stack === 'string'
+        ? (exception as { stack?: string }).stack
+        : undefined;
+    this.logger.error(
+      { status, code, message, requestId: request.requestId },
+      stack,
+    );
 
     response.status(status).json({
       statusCode: status,

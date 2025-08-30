@@ -1,7 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { LoggerModule } from 'nestjs-pino';
 import { RequestIdInterceptor } from '../src/common/interceptors/request-id.interceptor';
@@ -21,11 +20,15 @@ function makePdfBuffer(sizeBytes = 1024, salt?: string): Buffer {
   return Buffer.concat([header, body]);
 }
 
-async function createAppWithEnv(env: Record<string, string | undefined>): Promise<INestApplication> {
+async function createAppWithEnv(
+  env: Record<string, string | undefined>,
+): Promise<INestApplication> {
   const old = { ...process.env };
   Object.assign(process.env, env);
 
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule, LoggerModule.forRoot()] }).compile();
+  const moduleRef = await Test.createTestingModule({
+    imports: [AppModule, LoggerModule.forRoot()],
+  }).compile();
   const app = moduleRef.createNestApplication();
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalInterceptors(new RequestIdInterceptor());
@@ -56,8 +59,8 @@ describe('Auth e2e', () => {
       .post('/auth/login')
       .send({ identifier: 'admin@local.test', password: 'Admin@123' })
       .expect(200);
-
-    expect(res.body.accessToken).toBeDefined();
+    const token: unknown = res.body?.accessToken;
+    expect(typeof token === 'string' && token.length > 0).toBeTruthy();
   });
 
   it('login inválido -> 401', async () => {
@@ -81,7 +84,7 @@ describe('Documents e2e', () => {
       .post('/auth/login')
       .send({ identifier: 'admin@local.test', password: 'Admin@123' })
       .expect(200);
-    token = login.body.accessToken;
+    token = String(login.body?.accessToken ?? '');
   });
 
   afterAll(async () => {
@@ -94,7 +97,10 @@ describe('Documents e2e', () => {
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
       .set('x-request-id', 'e2e-upload-1')
-      .attach('file', pdf, { filename: 'test.pdf', contentType: 'application/pdf' })
+      .attach('file', pdf, {
+        filename: 'test.pdf',
+        contentType: 'application/pdf',
+      })
       .field('title', 'E2E Doc')
       .expect(201);
 
@@ -109,14 +115,20 @@ describe('Documents e2e', () => {
     await request(app.getHttpServer())
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
-      .attach('file', pdf, { filename: 'dup.pdf', contentType: 'application/pdf' })
+      .attach('file', pdf, {
+        filename: 'dup.pdf',
+        contentType: 'application/pdf',
+      })
       .field('title', 'Dup 1')
       .expect(201);
     // segunda igual
     const res = await request(app.getHttpServer())
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
-      .attach('file', pdf, { filename: 'dup.pdf', contentType: 'application/pdf' })
+      .attach('file', pdf, {
+        filename: 'dup.pdf',
+        contentType: 'application/pdf',
+      })
       .field('title', 'Dup 2')
       .expect(409);
 
@@ -128,7 +140,10 @@ describe('Documents e2e', () => {
     const res = await request(app.getHttpServer())
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
-      .attach('file', tooBig, { filename: 'big.pdf', contentType: 'application/pdf' })
+      .attach('file', tooBig, {
+        filename: 'big.pdf',
+        contentType: 'application/pdf',
+      })
       .field('title', 'Too Big')
       .expect(413);
 
@@ -152,7 +167,7 @@ describe('Documents e2e - STRICT_STORAGE=true (S3 down) -> 503', () => {
       .post('/auth/login')
       .send({ identifier: 'admin@local.test', password: 'Admin@123' })
       .expect(200);
-    token = login.body.accessToken;
+    token = String(login.body?.accessToken ?? '');
   });
 
   afterAll(async () => {
@@ -164,7 +179,10 @@ describe('Documents e2e - STRICT_STORAGE=true (S3 down) -> 503', () => {
     const res = await request(app.getHttpServer())
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
-      .attach('file', pdf, { filename: 's3down.pdf', contentType: 'application/pdf' })
+      .attach('file', pdf, {
+        filename: 's3down.pdf',
+        contentType: 'application/pdf',
+      })
       .field('title', 'S3 Down')
       .expect(503);
 

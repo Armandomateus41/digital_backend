@@ -1,4 +1,9 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { MulterError } from 'multer';
 
@@ -11,13 +16,11 @@ export class MulterExceptionFilter implements ExceptionFilter {
 
     const status = HttpStatus.PAYLOAD_TOO_LARGE;
 
-    response
-      .status(status)
-      .json({
-        statusCode: status,
-        code: 'UPLOAD_TOO_LARGE',
-        message: exception.message || 'Uploaded file too large',
-        requestId: request.requestId ?? undefined,
-      });
+    response.status(status).json({
+      statusCode: status,
+      code: 'UPLOAD_TOO_LARGE',
+      message: exception.message || 'Uploaded file too large',
+      requestId: request.requestId ?? undefined,
+    });
   }
 }

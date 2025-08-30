@@ -16,8 +16,21 @@ import { DocumentsModule } from './modules/documents/documents.module';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'debug',
-        transport: process.env.NODE_ENV !== 'production' ? { target: 'pino-pretty' } : undefined,
-        customProps: (req) => ({ requestId: (req as any).requestId }),
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty' }
+            : undefined,
+        customProps: (req: unknown) => {
+          const hasRequestId = (val: unknown): val is { requestId?: string } =>
+            typeof val === 'object' &&
+            val !== null &&
+            'requestId' in (val as Record<string, unknown>);
+          const requestId =
+            hasRequestId(req) && typeof req.requestId === 'string'
+              ? req.requestId
+              : undefined;
+          return { requestId };
+        },
       },
     }),
     ThrottlerModule.forRoot([

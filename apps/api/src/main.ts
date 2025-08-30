@@ -17,7 +17,10 @@ async function bootstrap() {
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  const origins = (process.env.CORS_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+  const origins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
   app.enableCors({
     origin: origins.length > 0 ? origins : true,
     exposedHeaders: ['x-request-id', 'location', 'etag'],
@@ -40,4 +43,4 @@ async function bootstrap() {
   await app.listen(port);
   new Logger('Bootstrap').log(`API listening on port ${port}`);
 }
-bootstrap();
+void bootstrap();

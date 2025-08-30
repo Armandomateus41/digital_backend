@@ -21,7 +21,8 @@ export class HealthController {
       result.db = 'down';
     }
 
-    const strict = (process.env.STRICT_STORAGE ?? 'false').toLowerCase() === 'true';
+    const strict =
+      (process.env.STRICT_STORAGE ?? 'false').toLowerCase() === 'true';
     const endpoint = process.env.S3_ENDPOINT;
     const region = process.env.S3_REGION ?? 'us-east-1';
     const bucket = process.env.S3_BUCKET;
@@ -32,10 +33,13 @@ export class HealthController {
           region,
           endpoint,
           forcePathStyle: true,
-          credentials: process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY ? {
-            accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-          } : undefined,
+          credentials:
+            process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY
+              ? {
+                  accessKeyId: process.env.S3_ACCESS_KEY_ID,
+                  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+                }
+              : undefined,
         });
         await s3.send(new HeadBucketCommand({ Bucket: bucket }));
         result.s3 = 'up';

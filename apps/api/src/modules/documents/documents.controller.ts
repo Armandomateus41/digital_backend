@@ -1,4 +1,18 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UploadedFile, UseInterceptors, Res, ParseFilePipe, Req, BadRequestException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+  Res,
+  ParseFilePipe,
+  Req,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentsService } from './documents.service';
 import type { Response, Request } from 'express';
@@ -7,7 +21,9 @@ import { Roles, RolesGuard } from '../../common/guards/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { IsString } from 'class-validator';
 
-class UploadBodyDto { @IsString() title!: string; }
+class UploadBodyDto {
+  @IsString() title!: string;
+}
 
 @Controller()
 export class DocumentsController {
@@ -20,15 +36,23 @@ export class DocumentsController {
   @HttpCode(HttpStatus.CREATED)
   async upload(
     @Body() body: UploadBodyDto,
-    @UploadedFile(new ParseFilePipe({ fileIsRequired: true })) file: Express.Multer.File,
+    @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
+    file: Express.Multer.File,
     @Res() res: Response,
-    @Req() req: Request & { user?: any; requestId?: string },
+    @Req() req: Request & { user?: { userId?: string }; requestId?: string },
   ) {
     if (!file || !file.buffer || !file.size || file.size <= 0) {
-      throw new BadRequestException({ code: 'FILE_REQUIRED', message: 'Arquivo ausente ou vazio' });
+      throw new BadRequestException({
+        code: 'FILE_REQUIRED',
+        message: 'Arquivo ausente ou vazio',
+      });
     }
-    const userId = req.user?.userId as string;
-    const doc = await this.documents.upload({ title: body.title, file, createdById: userId });
+    const userId = typeof req.user?.userId === 'string' ? req.user.userId : '';
+    const doc = await this.documents.upload({
+      title: body.title,
+      file,
+      createdById: userId,
+    });
     res.setHeader('ETag', `W/"${doc.contentSha256}"`);
     res.setHeader('Location', `/documents/${doc.id}`);
     return res.status(HttpStatus.CREATED).json(doc);
@@ -52,8 +76,15 @@ export class DocumentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @HttpCode(HttpStatus.CREATED)
-  async createSignature(@Param('id') documentId: string, @Body() body: { name: string; cpf: string }) {
-    return this.documents.createSignature({ documentId, name: body.name, cpf: body.cpf });
+  async createSignature(
+    @Param('id') documentId: string,
+    @Body() body: { name: string; cpf: string },
+  ) {
+    return this.documents.createSignature({
+      documentId,
+      name: body.name,
+      cpf: body.cpf,
+    });
   }
 
   @Get('documents/:id/signatures')
