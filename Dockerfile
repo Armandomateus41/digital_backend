@@ -31,5 +31,10 @@ COPY --from=deps /workspace/node_modules ./node_modules
 COPY --from=deps /workspace/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /workspace/apps/api/dist ./apps/api/dist
 COPY --from=build /workspace/apps/api/package.json ./apps/api/package.json
+COPY --from=build /workspace/apps/api/prisma ./apps/api/prisma
+
+# Generate Prisma Client for runtime platform
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm -F @digisign/api prisma:generate
 EXPOSE 3000
 CMD ["node", "apps/api/dist/src/main.js"]
