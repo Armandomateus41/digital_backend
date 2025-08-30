@@ -13,7 +13,18 @@ async function run() {
     create: { email, passwordHash, role: Role.admin },
   });
 
-  console.log(`Seeded admin: ${email}`);
+  // user comum por CPF
+  const userEmail = 'user@local.test';
+  const userCpf = '12345678909';
+  const userPass = 'User@123';
+  const userHash = await bcrypt.hash(userPass, 10);
+  await prisma.user.upsert({
+    where: { email: userEmail },
+    update: { passwordHash: userHash, role: Role.user, cpf: userCpf },
+    create: { email: userEmail, passwordHash: userHash, role: Role.user, cpf: userCpf },
+  });
+
+  console.log(`Seeded admin: ${email} | user: ${userEmail} (cpf ${userCpf})`);
   await prisma.$disconnect();
 }
 

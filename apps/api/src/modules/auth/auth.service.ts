@@ -11,7 +11,12 @@ export class AuthService {
   ) {}
 
   async validateUser(identifier: string, password: string) {
-    const user = await this.users.findByEmail(identifier);
+    // aceita e-mail ou CPF
+    const normalized = identifier.replace(/\D/g, '');
+    const byCpf = normalized.length === 11;
+    const user = byCpf
+      ? await this.users.findByCpf(normalized)
+      : await this.users.findByEmail(identifier);
     if (!user)
       throw new UnauthorizedException({
         code: 'INVALID_CREDENTIALS',

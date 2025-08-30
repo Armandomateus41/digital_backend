@@ -64,6 +64,19 @@ export class DocumentsController {
     return this.documents.getMetadata(id);
   }
 
+  // Público (usuário final): próximo documento para assinar
+  @Get('user/documents/next')
+  async nextToSign() {
+    return this.documents.getNextForUser();
+  }
+
+  // Público (usuário final): assinar documento
+  @Post('user/sign')
+  @HttpCode(HttpStatus.OK)
+  async signPublic(@Body() body: { documentId: string; cpf: string }) {
+    return this.documents.signPublic(body.documentId, body.cpf);
+  }
+
   @Get('admin/signatures')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

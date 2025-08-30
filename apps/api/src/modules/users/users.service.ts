@@ -9,6 +9,10 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  findByCpf(cpf: string) {
+    return this.prisma.user.findUnique({ where: { cpf } });
+  }
+
   async createUser(params: {
     email: string;
     passwordHash: string;
