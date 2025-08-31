@@ -20,11 +20,13 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../../common/guards/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { IsString } from 'class-validator';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 class UploadBodyDto {
   @IsString() title!: string;
 }
 
+@ApiTags('Documents')
 @Controller()
 export class DocumentsController {
   constructor(private readonly documents: DocumentsService) {}
@@ -60,12 +62,14 @@ export class DocumentsController {
 
   @Get('documents/:id')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Obtém metadados de um documento' })
   async getOne(@Param('id') id: string) {
     return this.documents.getMetadata(id);
   }
 
   // Público (usuário final): próximo documento para assinar
   @Get('user/documents/next')
+  @ApiOperation({ summary: 'Próximo documento disponível para o usuário (público)' })
   async nextToSign() {
     return this.documents.getNextForUser();
   }
@@ -73,6 +77,7 @@ export class DocumentsController {
   // Público (usuário final): assinar documento
   @Post('user/sign')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Assina documento público com CPF e retorna hash' })
   async signPublic(@Body() body: { documentId: string; cpf: string }) {
     return this.documents.signPublic(body.documentId, body.cpf);
   }
@@ -81,6 +86,7 @@ export class DocumentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lista assinaturas (admin)' })
   async listSignatures() {
     return this.documents.listSignatures();
   }
@@ -89,6 +95,7 @@ export class DocumentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Adiciona assinante a um documento (admin)' })
   async createSignature(
     @Param('id') documentId: string,
     @Body() body: { name: string; cpf: string },
@@ -103,6 +110,7 @@ export class DocumentsController {
   @Get('documents/:id/signatures')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lista assinaturas de um documento' })
   async listByDocument(@Param('id') documentId: string) {
     return this.documents.listSignaturesByDocument(documentId);
   }
@@ -110,7 +118,18 @@ export class DocumentsController {
   @Post('signatures/:id/sign')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Marca assinatura como SIGNED' })
   async sign(@Param('id') id: string) {
     return this.documents.sign(id);
+  }
+
+  @Get('documents/:id/certificate-url')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Retorna URL pré‑assinada para download do certificado (se disponível)' })
+  @ApiOkResponse({ schema: { type: 'object', properties: { url: { type: 'string' } } } })
+  async getPresignedCertificate(@Param('id') id: string) {
+    const url = await this.documents.getCertificatePresignedUrl(id);
+    return { url };
   }
 }

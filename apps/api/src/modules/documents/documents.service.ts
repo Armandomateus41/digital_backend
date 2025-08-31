@@ -162,6 +162,28 @@ export class DocumentsService {
     return updated;
   }
 
+  async getCertificatePresignedUrl(documentId: string): Promise<string> {
+    const doc = await this.prisma.document.findUnique({ where: { id: documentId } });
+    if (!doc)
+      throw new ConflictException({
+        code: 'DOCUMENT_NOT_FOUND',
+        message: 'Documento não encontrado',
+      });
+    if (!doc.storageKey) {
+      if (this.strictStorage) {
+        throw new ServiceUnavailableException({
+          code: 'STORAGE_UNAVAILABLE',
+          message: 'Arquivo não disponível no armazenamento',
+        });
+      }
+      throw new ConflictException({
+        code: 'CERTIFICATE_UNAVAILABLE',
+        message: 'Certificado indisponível para este documento',
+      });
+    }
+    return this.s3.createPresignedDownloadUrl(doc.storageKey);
+  }
+
   // Público: retorna um documento qualquer (o mais recente) para assinar
   async getNextForUser() {
     const doc = await this.prisma.document.findFirst({
