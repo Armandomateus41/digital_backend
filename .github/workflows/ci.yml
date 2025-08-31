@@ -36,5 +36,14 @@ jobs:
       - name: Build
         run: pnpm -F @digisign/api build
 
-      - name: Unit tests
-        run: pnpm -F @digisign/api test
+      - name: Unit tests (with coverage)
+        run: pnpm -F @digisign/api test:cov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/api/coverage/lcov.info
+          flags: api
+          fail_ci_if_error: false
+          verbose: true

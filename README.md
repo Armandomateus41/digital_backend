@@ -1,5 +1,13 @@
 # Digisign Flow API
 
+[![CI](https://github.com/Armandomateus41/digital_backend/actions/workflows/ci.yml/badge.svg)](https://github.com/Armandomateus41/digital_backend/actions/workflows/ci.yml)
+[![Smoke](https://github.com/Armandomateus41/digital_backend/actions/workflows/smoke.yml/badge.svg)](https://github.com/Armandomateus41/digital_backend/actions/workflows/smoke.yml)
+[![codecov](https://codecov.io/gh/Armandomateus41/digital_backend/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Armandomateus41/digital_backend)
+![Node](https://img.shields.io/badge/node-20.x-026e00?logo=node.js&logoColor=white)
+![PNPM](https://img.shields.io/badge/pnpm-9.x-f69220?logo=pnpm&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-11.0-e0234e?logo=nestjs&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-0db7ed?logo=docker&logoColor=white)
+
 Backend NestJS (Node 20, TypeScript strict) para fluxo de assinatura de documentos (upload PDF, metadados Postgres, S3, JWT, RBAC, observabilidade e OpenAPI).
 
 ## Requisitos
@@ -97,12 +105,12 @@ curl -s http://localhost:3000/health
 pnpm -F @digisign/api prisma:deploy && pnpm -F @digisign/api seed
 ```
 4) Verificação:
-   - `GET /health` deve retornar `{"status":"ok",...}`
+   - `GET /health` deve retornar `{\"status\":\"ok\",...}`
    - `GET /docs` (Swagger) disponível em não‑prod
 
-## Testes
+## Testes e Cobertura
 - Unit e e2e com Jest/Supertest
 ```
-pnpm -F @digisign/api test:e2e
+pnpm -F @digisign/api test -- --coverage
 ```
-Os testes cobrem: login (200/401), upload PDF (201), 413 (>10MB), 409 (conteúdo duplicado), 503 (S3 indisponível com `STRICT_STORAGE=true`).
+- A cobertura é publicada no Codecov pelo CI. Consulte: https://app.codecov.io/gh/Armandomateus41/digital_backend
