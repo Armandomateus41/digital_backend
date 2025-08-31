@@ -8,8 +8,8 @@
 ![NestJS](https://img.shields.io/badge/NestJS-11.0-e0234e?logo=nestjs&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-0db7ed?logo=docker&logoColor=white)
 
-[![Backend Deploy](https://img.shields.io/endpoint?url=https%3A%2F%2Fimg.shields.io%2Fbadge%2Fbackend--deploy-render-blue)](https://render.com)
-[![Frontend Deploy](https://img.shields.io/endpoint?url=https%3A%2F%2Fimg.shields.io%2Fbadge%2Ffrontend--deploy-vercel-black)](https://vercel.com)
+[![Backend Health](https://img.shields.io/website?url=https%3A%2F%2Fdigital-backend-6vr0.onrender.com%2Fhealth&label=Backend%20Health)](https://digital-backend-6vr0.onrender.com/health)
+[![Frontend](https://img.shields.io/website?url=https%3A%2F%2Fdigital-frontend-xi.vercel.app%2Flogin&label=Frontend)](https://digital-frontend-xi.vercel.app/login)
 
 Backend NestJS (Node 20, TypeScript strict) para fluxo de assinatura de documentos (upload PDF, metadados Postgres, S3, JWT, RBAC, observabilidade e OpenAPI).
 
