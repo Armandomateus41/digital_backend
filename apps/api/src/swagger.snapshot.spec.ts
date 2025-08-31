@@ -38,11 +38,12 @@ describe('Swagger snapshot', () => {
       .build();
     const doc = SwaggerModule.createDocument(app, config);
 
-    // Remover campos voláteis
-    if (doc && typeof doc === 'object') {
-      delete (doc as Record<string, unknown>).servers;
-    }
+    // Sanitiza campos voláteis convertendo para objeto genérico
+    const json = JSON.parse(JSON.stringify(doc)) as Record<string, unknown> & {
+      servers?: unknown;
+    };
+    delete json.servers;
 
-    expect(doc).toMatchSnapshot();
+    expect(json).toMatchSnapshot();
   });
 });
