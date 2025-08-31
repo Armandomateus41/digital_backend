@@ -164,7 +164,9 @@ export class DocumentsService {
 
   // Público: retorna um documento qualquer (o mais recente) para assinar
   async getNextForUser() {
-    const doc = await this.prisma.document.findFirst({ orderBy: { createdAt: 'desc' } });
+    const doc = await this.prisma.document.findFirst({
+      orderBy: { createdAt: 'desc' },
+    });
     if (!doc) return null;
     // Em produção, aqui poderíamos filtrar por usuário/estado; para o teste, retornamos o último
     const downloadUrl = '';
@@ -173,15 +175,28 @@ export class DocumentsService {
 
   // Público: assina documento, gera hash doc+cpf e registra
   async signPublic(documentId: string, cpf: string) {
-    const doc = await this.prisma.document.findUnique({ where: { id: documentId } });
-    if (!doc) throw new ConflictException({ code: 'DOCUMENT_NOT_FOUND', message: 'Documento não encontrado' });
+    const doc = await this.prisma.document.findUnique({
+      where: { id: documentId },
+    });
+    if (!doc)
+      throw new ConflictException({
+        code: 'DOCUMENT_NOT_FOUND',
+        message: 'Documento não encontrado',
+      });
     const normalizedCpf = cpf.replace(/\D/g, '');
     const payload = `${doc.contentSha256}:${normalizedCpf}`;
     const hash = createHash('sha256').update(payload).digest('hex');
     const sig = await this.prisma.signature.upsert({
       where: { documentId_cpf: { documentId, cpf: normalizedCpf } },
       update: { status: 'SIGNED', signedAt: new Date(), hash },
-      create: { documentId, name: doc.title, cpf: normalizedCpf, status: 'SIGNED', signedAt: new Date(), hash },
+      create: {
+        documentId,
+        name: doc.title,
+        cpf: normalizedCpf,
+        status: 'SIGNED',
+        signedAt: new Date(),
+        hash,
+      },
     });
     return { hash: sig.hash };
   }

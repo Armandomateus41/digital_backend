@@ -5,6 +5,8 @@ import {
   DeleteObjectCommand,
   HeadBucketCommand,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class S3Service {
@@ -52,5 +54,14 @@ export class S3Service {
     await this.client.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
     );
+  }
+
+  async createPresignedDownloadUrl(
+    key: string,
+    expiresInSeconds = 900,
+  ): Promise<string> {
+    if (!this.bucket) throw new Error('S3 bucket not configured');
+    const cmd = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+    return getSignedUrl(this.client, cmd, { expiresIn: expiresInSeconds });
   }
 }

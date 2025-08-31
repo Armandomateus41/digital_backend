@@ -12,6 +12,13 @@ import { AuthService } from './auth.service';
 import { IsOptional, IsString } from 'class-validator';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import {
+  ApiBody,
+  ApiHeader,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 
 class LoginDto {
   @IsString()
@@ -26,6 +33,7 @@ class LoginDto {
   cpf?: string;
 }
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -35,6 +43,43 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Realiza login com e-mail ou CPF e retorna JWT' })
+  @ApiBody({
+    description: 'Informe identifier (e-mail) OU cpf, e a senha',
+    schema: {
+      oneOf: [
+        {
+          type: 'object',
+          properties: {
+            identifier: { type: 'string', example: 'admin@local.test' },
+            password: { type: 'string', example: 'Admin@123' },
+          },
+          required: ['identifier', 'password'],
+        },
+        {
+          type: 'object',
+          properties: {
+            cpf: { type: 'string', example: '12345678909' },
+            password: { type: 'string', example: 'User@123' },
+          },
+          required: ['cpf', 'password'],
+        },
+      ],
+    },
+  })
+  @ApiOkResponse({
+    description: 'JWT emitido com sucesso',
+    schema: {
+      type: 'object',
+      properties: {
+        accessToken: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+        expiresIn: { type: 'number', example: 900000 },
+      },
+    },
+  })
   login(@Body() body: LoginDto) {
     const identifier =
       typeof body.identifier === 'string' && body.identifier.trim().length > 0
@@ -52,6 +97,22 @@ export class AuthController {
 
   @Get('session')
   @HttpCode(200)
+  @ApiOperation({
+    summary: 'Valida a sessão usando Authorization: Bearer <token>',
+  })
+  @ApiHeader({ name: 'Authorization', description: 'Bearer <token>' })
+  @ApiOkResponse({
+    description: 'Estado da sessão',
+    schema: {
+      type: 'object',
+      properties: {
+        authenticated: { type: 'boolean', example: true },
+        role: { type: 'string', example: 'ADMIN' },
+        email: { type: 'string', example: 'admin@local.test' },
+        exp: { type: 'number', example: 1735689600 },
+      },
+    },
+  })
   session(@Req() req: { headers: Record<string, unknown> }) {
     const authRaw = req.headers['authorization'];
     const header: string | undefined =

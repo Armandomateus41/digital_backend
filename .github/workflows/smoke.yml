@@ -1,0 +1,36 @@
+name: Smoke Tests (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: "API base URL (ex: https://digital-backend-....onrender.com)"
+        required: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install deps (api only)
+        run: pnpm -F @digisign/api install --frozen-lockfile=false
+
+      - name: Run smoke (login admin + upload attempt)
+        env:
+          API_BASE_URL: ${{ inputs.api_base_url }}
+        run: node apps/api/scripts/smoke-upload.mjs
+
+
