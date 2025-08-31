@@ -1,0 +1,406 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Swagger snapshot matches snapshot 1`] = `
+{
+  "components": {
+    "schemas": {
+      "UploadBodyDto": {
+        "properties": {},
+        "type": "object",
+      },
+    },
+    "securitySchemes": {
+      "bearer": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http",
+      },
+    },
+  },
+  "info": {
+    "contact": {},
+    "description": "",
+    "title": "Digisign Flow API",
+    "version": "1.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+      },
+    },
+    "/admin/documents": {
+      "post": {
+        "operationId": "DocumentsController_upload",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadBodyDto",
+              },
+            },
+          },
+          "required": true,
+        },
+        "responses": {
+          "201": {
+            "description": "",
+          },
+        },
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/admin/documents/{id}/signatures": {
+      "post": {
+        "operationId": "DocumentsController_createSignature",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+          },
+        },
+        "summary": "Adiciona assinante a um documento (admin)",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/admin/signatures": {
+      "get": {
+        "operationId": "DocumentsController_listSignatures",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+        "summary": "Lista assinaturas (admin)",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "properties": {
+                      "identifier": {
+                        "example": "admin@local.test",
+                        "type": "string",
+                      },
+                      "password": {
+                        "example": "Admin@123",
+                        "type": "string",
+                      },
+                    },
+                    "required": [
+                      "identifier",
+                      "password",
+                    ],
+                    "type": "object",
+                  },
+                  {
+                    "properties": {
+                      "cpf": {
+                        "example": "12345678909",
+                        "type": "string",
+                      },
+                      "password": {
+                        "example": "User@123",
+                        "type": "string",
+                      },
+                    },
+                    "required": [
+                      "cpf",
+                      "password",
+                    ],
+                    "type": "object",
+                  },
+                ],
+              },
+            },
+          },
+          "description": "Informe identifier (e-mail) OU cpf, e a senha",
+          "required": true,
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accessToken": {
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "type": "string",
+                    },
+                    "expiresIn": {
+                      "example": 900000,
+                      "type": "number",
+                    },
+                  },
+                  "type": "object",
+                },
+              },
+            },
+            "description": "JWT emitido com sucesso",
+          },
+        },
+        "summary": "Realiza login com e-mail ou CPF e retorna JWT",
+        "tags": [
+          "Auth",
+        ],
+      },
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+        "tags": [
+          "Auth",
+        ],
+      },
+    },
+    "/auth/session": {
+      "get": {
+        "operationId": "AuthController_session",
+        "parameters": [
+          {
+            "description": "Bearer <token>",
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "authenticated": {
+                      "example": true,
+                      "type": "boolean",
+                    },
+                    "email": {
+                      "example": "admin@local.test",
+                      "type": "string",
+                    },
+                    "exp": {
+                      "example": 1735689600,
+                      "type": "number",
+                    },
+                    "role": {
+                      "example": "ADMIN",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Estado da sessão",
+          },
+        },
+        "summary": "Valida a sessão usando Authorization: Bearer <token>",
+        "tags": [
+          "Auth",
+        ],
+      },
+    },
+    "/documents/{id}": {
+      "get": {
+        "operationId": "DocumentsController_getOne",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+        "summary": "Obtém metadados de um documento",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/documents/{id}/certificate-url": {
+      "get": {
+        "operationId": "DocumentsController_getPresignedCertificate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+              },
+            },
+            "description": "",
+          },
+        },
+        "summary": "Retorna URL pré‑assinada para download do certificado (se disponível)",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/documents/{id}/signatures": {
+      "get": {
+        "operationId": "DocumentsController_listByDocument",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+        "summary": "Lista assinaturas de um documento",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+      },
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "MetricsController_getMetrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+      },
+    },
+    "/signatures/{id}/sign": {
+      "post": {
+        "operationId": "DocumentsController_sign",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+        "summary": "Marca assinatura como SIGNED",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/user/documents/next": {
+      "get": {
+        "operationId": "DocumentsController_nextToSign",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+        "summary": "Próximo documento disponível para o usuário (público)",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+    "/user/sign": {
+      "post": {
+        "operationId": "DocumentsController_signPublic",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+          },
+        },
+        "summary": "Assina documento público com CPF e retorna hash",
+        "tags": [
+          "Documents",
+        ],
+      },
+    },
+  },
+  "tags": [],
+}
+`;

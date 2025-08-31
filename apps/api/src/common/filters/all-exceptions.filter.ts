@@ -56,11 +56,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
       stack,
     );
 
-    response.status(status).json({
-      statusCode: status,
-      code,
-      message,
-      requestId: request.requestId ?? undefined,
-    });
+    response
+      .status(status)
+      .header('Content-Type', 'application/problem+json')
+      .json({
+        type: `https://httpstatuses.com/${status}`,
+        title: HttpStatus[status] ?? 'Error',
+        status,
+        code,
+        detail: message,
+        instance: request.url,
+        requestId: request.requestId ?? undefined,
+      });
   }
 }

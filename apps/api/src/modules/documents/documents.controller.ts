@@ -63,8 +63,21 @@ export class DocumentsController {
   @Get('documents/:id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtém metadados de um documento' })
-  async getOne(@Param('id') id: string) {
-    return this.documents.getMetadata(id);
+  async getOne(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const doc = await this.documents.getMetadata(id);
+    if (!doc) return res.status(HttpStatus.NOT_FOUND).json({ code: 'DOCUMENT_NOT_FOUND', message: 'Documento não encontrado' });
+    const etag = `W/"${doc.contentSha256}"`;
+    const ifNoneMatch = req.headers['if-none-match'];
+    if (typeof ifNoneMatch === 'string' && ifNoneMatch === etag) {
+      res.setHeader('ETag', etag);
+      return res.status(HttpStatus.NOT_MODIFIED).send();
+    }
+    res.setHeader('ETag', etag);
+    return res.status(HttpStatus.OK).json(doc);
   }
 
   // Público (usuário final): próximo documento para assinar
@@ -78,8 +91,33 @@ export class DocumentsController {
   @Post('user/sign')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Assina documento público com CPF e retorna hash' })
-  async signPublic(@Body() body: { documentId: string; cpf: string }) {
-    return this.documents.signPublic(body.documentId, body.cpf);
+  async signPublic(
+    @Body() body: { documentId: string; cpf: string },
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const idempotencyKeyRaw = req.headers['idempotency-key'];
+    const idempotencyKey = Array.isArray(idempotencyKeyRaw)
+      ? idempotencyKeyRaw[0]
+      : idempotencyKeyRaw;
+    try {
+      const result = await this.documents.signPublic(body.documentId, body.cpf);
+      if (idempotencyKey) {
+        res.setHeader('Idempotency-Key', String(idempotencyKey));
+      }
+      return res.status(HttpStatus.OK).json(result);
+    } catch (err) {
+      // Se assinatura já existe para o mesmo documento+CPF, considerar idempotente
+      const code = (err as { code?: unknown })?.code;
+      if (code === 'SIGNER_ALREADY_ADDED') {
+        const result = await this.documents.signPublic(body.documentId, body.cpf);
+        if (idempotencyKey) {
+          res.setHeader('Idempotency-Key', String(idempotencyKey));
+        }
+        return res.status(HttpStatus.OK).json(result);
+      }
+      throw err;
+    }
   }
 
   @Get('admin/signatures')
@@ -87,8 +125,13 @@ export class DocumentsController {
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Lista assinaturas (admin)' })
-  async listSignatures() {
-    return this.documents.listSignatures();
+  async listSignatures(@Req() req: Request) {
+    const limitRaw = req.query['limit'];
+    const cursorId = typeof req.query['cursorId'] === 'string' ? req.query['cursorId'] : undefined;
+    const cursorCreatedAtRaw = typeof req.query['cursorCreatedAt'] === 'string' ? req.query['cursorCreatedAt'] : undefined;
+    const limit = typeof limitRaw === 'string' ? Math.min(Math.max(parseInt(limitRaw, 10) || 50, 1), 100) : 50;
+    const cursor = cursorId && cursorCreatedAtRaw ? { id: cursorId, createdAt: new Date(cursorCreatedAtRaw) } : undefined;
+    return this.documents.listSignatures(limit, cursor);
   }
 
   @Post('admin/documents/:id/signatures')

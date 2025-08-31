@@ -19,6 +19,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 class LoginDto {
   @IsString()
@@ -42,6 +43,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60 } }) // 5 req/min por IP
   @HttpCode(200)
   @ApiOperation({ summary: 'Realiza login com e-mail ou CPF e retorna JWT' })
   @ApiBody({

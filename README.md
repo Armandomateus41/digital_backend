@@ -8,6 +8,9 @@
 ![NestJS](https://img.shields.io/badge/NestJS-11.0-e0234e?logo=nestjs&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-0db7ed?logo=docker&logoColor=white)
 
+[![Backend Deploy](https://img.shields.io/endpoint?url=https%3A%2F%2Fimg.shields.io%2Fbadge%2Fbackend--deploy-render-blue)](https://render.com)
+[![Frontend Deploy](https://img.shields.io/endpoint?url=https%3A%2F%2Fimg.shields.io%2Fbadge%2Ffrontend--deploy-vercel-black)](https://vercel.com)
+
 Backend NestJS (Node 20, TypeScript strict) para fluxo de assinatura de documentos (upload PDF, metadados Postgres, S3, JWT, RBAC, observabilidade e OpenAPI).
 
 ## Requisitos
@@ -105,7 +108,7 @@ curl -s http://localhost:3000/health
 pnpm -F @digisign/api prisma:deploy && pnpm -F @digisign/api seed
 ```
 4) Verificação:
-   - `GET /health` deve retornar `{\"status\":\"ok\",...}`
+   - `GET /health` deve retornar `{"status":"ok",...}`
    - `GET /docs` (Swagger) disponível em não‑prod
 
 ## Testes e Cobertura

@@ -9,6 +9,9 @@ import { LoggerModule } from 'nestjs-pino';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { MetricsModule } from './metrics/metrics.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpMetricsInterceptor } from './common/interceptors/http-metrics.interceptor';
 
 @Module({
   imports: [
@@ -43,10 +46,12 @@ import { DocumentsModule } from './modules/documents/documents.module';
     UsersModule,
     AuthModule,
     DocumentsModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    { provide: APP_INTERCEPTOR, useClass: HttpMetricsInterceptor },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

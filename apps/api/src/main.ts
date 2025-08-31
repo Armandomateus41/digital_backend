@@ -4,6 +4,8 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
+import { EtagInterceptor } from './common/interceptors/etag.interceptor';
+import { HttpMetricsInterceptor } from './common/interceptors/http-metrics.interceptor';
 import { MulterExceptionFilter } from './common/filters/multer-exception.filter';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -28,7 +30,11 @@ async function bootstrap() {
     exposedHeaders: ['x-request-id', 'location', 'etag'],
   });
 
-  app.useGlobalInterceptors(new RequestIdInterceptor());
+  app.useGlobalInterceptors(
+    new RequestIdInterceptor(),
+    new EtagInterceptor(),
+    app.get(HttpMetricsInterceptor),
+  );
   app.useGlobalFilters(new MulterExceptionFilter(), new AllExceptionsFilter());
 
   if (process.env.NODE_ENV !== 'production') {

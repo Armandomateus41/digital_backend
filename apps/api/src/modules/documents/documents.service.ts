@@ -100,19 +100,28 @@ export class DocumentsService {
     return this.prisma.document.findUnique({ where: { id } });
   }
 
-  async listSignatures(limit = 50) {
+  async listSignatures(limit = 50, cursor?: { createdAt: Date; id: string }) {
     const signs = await this.prisma.signature.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor.id } : undefined,
       include: { document: true },
     });
-    return signs.map((s) => ({
+    const items = signs.map((s) => ({
       documentId: s.documentId,
       name: s.document.title,
       date: s.signedAt ?? s.createdAt,
       cpf: s.cpf,
       hash: s.hash ?? s.document.contentSha256,
+      id: s.id,
+      createdAt: s.createdAt,
     }));
+    const nextCursor =
+      items.length > 0
+        ? { id: items[items.length - 1].id, createdAt: items[items.length - 1].createdAt }
+        : null;
+    return { items, nextCursor };
   }
 
   async createSignature(params: {
