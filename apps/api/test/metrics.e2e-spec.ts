@@ -25,5 +25,3 @@ describe('/metrics e2e', () => {
     expect(res.text).toContain('http_requests_total');
   });
 });
-
-

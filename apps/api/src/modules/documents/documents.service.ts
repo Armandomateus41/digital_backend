@@ -119,7 +119,10 @@ export class DocumentsService {
     }));
     const nextCursor =
       items.length > 0
-        ? { id: items[items.length - 1].id, createdAt: items[items.length - 1].createdAt }
+        ? {
+            id: items[items.length - 1].id,
+            createdAt: items[items.length - 1].createdAt,
+          }
         : null;
     return { items, nextCursor };
   }
@@ -172,7 +175,9 @@ export class DocumentsService {
   }
 
   async getCertificatePresignedUrl(documentId: string): Promise<string> {
-    const doc = await this.prisma.document.findUnique({ where: { id: documentId } });
+    const doc = await this.prisma.document.findUnique({
+      where: { id: documentId },
+    });
     if (!doc)
       throw new ConflictException({
         code: 'DOCUMENT_NOT_FOUND',

@@ -15,9 +15,14 @@ describe('Swagger snapshot', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     app.useGlobalInterceptors(new RequestIdInterceptor());
-    app.useGlobalFilters(new MulterExceptionFilter(), new AllExceptionsFilter());
+    app.useGlobalFilters(
+      new MulterExceptionFilter(),
+      new AllExceptionsFilter(),
+    );
     await app.init();
   });
 
@@ -34,12 +39,10 @@ describe('Swagger snapshot', () => {
     const doc = SwaggerModule.createDocument(app, config);
 
     // Remover campos voláteis
-    if (doc && typeof (doc as any) === 'object') {
-      delete (doc as any).servers;
+    if (doc && typeof doc === 'object') {
+      delete (doc as Record<string, unknown>).servers;
     }
 
     expect(doc).toMatchSnapshot();
   });
 });
-
-

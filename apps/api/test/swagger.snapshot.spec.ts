@@ -15,9 +15,14 @@ describe('Swagger snapshot', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     app.useGlobalInterceptors(new RequestIdInterceptor());
-    app.useGlobalFilters(new MulterExceptionFilter(), new AllExceptionsFilter());
+    app.useGlobalFilters(
+      new MulterExceptionFilter(),
+      new AllExceptionsFilter(),
+    );
     await app.init();
   });
 

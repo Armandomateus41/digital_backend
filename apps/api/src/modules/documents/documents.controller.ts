@@ -69,7 +69,11 @@ export class DocumentsController {
     @Res() res: Response,
   ) {
     const doc = await this.documents.getMetadata(id);
-    if (!doc) return res.status(HttpStatus.NOT_FOUND).json({ code: 'DOCUMENT_NOT_FOUND', message: 'Documento não encontrado' });
+    if (!doc)
+      return res.status(HttpStatus.NOT_FOUND).json({
+        code: 'DOCUMENT_NOT_FOUND',
+        message: 'Documento não encontrado',
+      });
     const etag = `W/"${doc.contentSha256}"`;
     const ifNoneMatch = req.headers['if-none-match'];
     if (typeof ifNoneMatch === 'string' && ifNoneMatch === etag) {
@@ -82,7 +86,9 @@ export class DocumentsController {
 
   // Público (usuário final): próximo documento para assinar
   @Get('user/documents/next')
-  @ApiOperation({ summary: 'Próximo documento disponível para o usuário (público)' })
+  @ApiOperation({
+    summary: 'Próximo documento disponível para o usuário (público)',
+  })
   async nextToSign() {
     return this.documents.getNextForUser();
   }
@@ -110,7 +116,10 @@ export class DocumentsController {
       // Se assinatura já existe para o mesmo documento+CPF, considerar idempotente
       const code = (err as { code?: unknown })?.code;
       if (code === 'SIGNER_ALREADY_ADDED') {
-        const result = await this.documents.signPublic(body.documentId, body.cpf);
+        const result = await this.documents.signPublic(
+          body.documentId,
+          body.cpf,
+        );
         if (idempotencyKey) {
           res.setHeader('Idempotency-Key', String(idempotencyKey));
         }
@@ -127,10 +136,22 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Lista assinaturas (admin)' })
   async listSignatures(@Req() req: Request) {
     const limitRaw = req.query['limit'];
-    const cursorId = typeof req.query['cursorId'] === 'string' ? req.query['cursorId'] : undefined;
-    const cursorCreatedAtRaw = typeof req.query['cursorCreatedAt'] === 'string' ? req.query['cursorCreatedAt'] : undefined;
-    const limit = typeof limitRaw === 'string' ? Math.min(Math.max(parseInt(limitRaw, 10) || 50, 1), 100) : 50;
-    const cursor = cursorId && cursorCreatedAtRaw ? { id: cursorId, createdAt: new Date(cursorCreatedAtRaw) } : undefined;
+    const cursorId =
+      typeof req.query['cursorId'] === 'string'
+        ? req.query['cursorId']
+        : undefined;
+    const cursorCreatedAtRaw =
+      typeof req.query['cursorCreatedAt'] === 'string'
+        ? req.query['cursorCreatedAt']
+        : undefined;
+    const limit =
+      typeof limitRaw === 'string'
+        ? Math.min(Math.max(parseInt(limitRaw, 10) || 50, 1), 100)
+        : 50;
+    const cursor =
+      cursorId && cursorCreatedAtRaw
+        ? { id: cursorId, createdAt: new Date(cursorCreatedAtRaw) }
+        : undefined;
     return this.documents.listSignatures(limit, cursor);
   }
 
@@ -169,8 +190,13 @@ export class DocumentsController {
   @Get('documents/:id/certificate-url')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Retorna URL pré‑assinada para download do certificado (se disponível)' })
-  @ApiOkResponse({ schema: { type: 'object', properties: { url: { type: 'string' } } } })
+  @ApiOperation({
+    summary:
+      'Retorna URL pré‑assinada para download do certificado (se disponível)',
+  })
+  @ApiOkResponse({
+    schema: { type: 'object', properties: { url: { type: 'string' } } },
+  })
   async getPresignedCertificate(@Param('id') id: string) {
     const url = await this.documents.getCertificatePresignedUrl(id);
     return { url };

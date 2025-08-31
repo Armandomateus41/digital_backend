@@ -19,11 +19,12 @@ describe('/metrics e2e', () => {
   });
 
   it('GET /metrics retorna formato Prometheus', async () => {
-    const res = await request(app.getHttpServer()).get('/metrics').expect(200);
+    const server = app.getHttpServer() as unknown as Parameters<
+      typeof request
+    >[0];
+    const res = await request(server).get('/metrics').expect(200);
     expect(res.headers['content-type']).toContain('text/plain');
     expect(res.text).toContain('# HELP');
     expect(res.text).toContain('http_requests_total');
   });
 });
-
-

@@ -9,18 +9,31 @@ describe('AuthService', () => {
     jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
 
     const users = {
-      findByCpf: jest.fn(async (cpf: string) => {
-        if (cpf === '12345678909') return { id: 'u1', email: 'user@local.test', cpf: '12345678909', role: 'USER', passwordHash: 'hash' };
-        return null;
+      findByCpf: jest.fn((cpf: string) => {
+        if (cpf === '12345678909')
+          return Promise.resolve({
+            id: 'u1',
+            email: 'user@local.test',
+            cpf: '12345678909',
+            role: 'USER',
+            passwordHash: 'hash',
+          });
+        return Promise.resolve(null);
       }),
-      findByEmail: jest.fn(async () => null),
+      findByEmail: jest.fn(() => Promise.resolve(null)),
     } as unknown as UsersService;
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: UsersService, useValue: users },
-        { provide: JwtService, useValue: { signAsync: async () => 'token', decode: () => ({ exp: Math.floor(Date.now()/1000)+900 }) } },
+        {
+          provide: JwtService,
+          useValue: {
+            signAsync: () => Promise.resolve('token'),
+            decode: () => ({ exp: Math.floor(Date.now() / 1000) + 900 }),
+          },
+        },
       ],
     }).compile();
 
@@ -29,5 +42,3 @@ describe('AuthService', () => {
     expect(res.accessToken).toBe('token');
   });
 });
-
-

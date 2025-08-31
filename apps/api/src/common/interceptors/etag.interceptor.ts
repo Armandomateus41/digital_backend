@@ -1,4 +1,9 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { createHash } from 'crypto';
 import { Observable, map } from 'rxjs';
@@ -22,5 +27,3 @@ export class EtagInterceptor implements NestInterceptor {
     );
   }
 }
-
-

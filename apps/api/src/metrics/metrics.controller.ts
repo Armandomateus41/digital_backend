@@ -12,5 +12,3 @@ export class MetricsController {
     return this.metrics.registry.metrics();
   }
 }
-
-
