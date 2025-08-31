@@ -8,7 +8,34 @@ import { EtagInterceptor } from './common/interceptors/etag.interceptor';
 import { MulterExceptionFilter } from './common/filters/multer-exception.filter';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import './tracing';
+// Tracing opcional via OpenTelemetry
+const otelEnabled = (process.env.OTEL_ENABLED ?? 'false').toLowerCase() === 'true';
+if (otelEnabled) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { NodeSDK } = require('@opentelemetry/sdk-node');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+    const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces';
+    const serviceName = process.env.SERVICE_NAME || 'digisign-api';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const sdk = new NodeSDK({
+      traceExporter: new OTLPTraceExporter({ url: endpoint }),
+      serviceName,
+      instrumentations: [getNodeAutoInstrumentations()],
+    });
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    sdk.start();
+    process.on('SIGTERM', () => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      sdk.shutdown();
+    });
+  } catch (e) {
+    // ignore tracing init errors in production
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
