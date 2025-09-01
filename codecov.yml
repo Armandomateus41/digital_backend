@@ -1,0 +1,18 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 0.60
+        threshold: 0.01
+        informational: false
+    patch:
+      default:
+        target: auto
+        threshold: 0.005
+        only_pulls: true
+        informational: false
+ignore:
+  - apps/api/dist/**
+  - apps/api/coverage/**
+  - apps/api/test/**
+  - "**/*.d.ts"
