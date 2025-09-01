@@ -53,7 +53,7 @@ describe('AllExceptionsFilter', () => {
       resBag,
     );
     const ex = new ConflictException({ code: 'DUP', message: 'dup' });
-    const body = filter.catch(ex, host) as unknown;
+    filter.catch(ex, host);
 
     expect(response.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
     expect(response.header).toHaveBeenCalledWith(
@@ -74,11 +74,9 @@ describe('AllExceptionsFilter', () => {
     );
     const ex = new UnauthorizedException();
     filter.catch(ex, host);
-    const payload = (response.json.mock.calls.at(-1)?.[0] ?? {}) as Record<
-      string,
-      unknown
-    >;
-    expect(payload.code).toBe('INVALID_CREDENTIALS');
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'INVALID_CREDENTIALS' }),
+    );
   });
 
   it('mapeia PayloadTooLargeException para UPLOAD_TOO_LARGE', () => {
@@ -91,11 +89,9 @@ describe('AllExceptionsFilter', () => {
     );
     const ex = new PayloadTooLargeException();
     filter.catch(ex, host);
-    const payload = (response.json.mock.calls.at(-1)?.[0] ?? {}) as Record<
-      string,
-      unknown
-    >;
-    expect(payload.code).toBe('UPLOAD_TOO_LARGE');
-    expect(resBag.statusCode).toBe(HttpStatus.PAYLOAD_TOO_LARGE);
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.PAYLOAD_TOO_LARGE);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'UPLOAD_TOO_LARGE' }),
+    );
   });
 });
