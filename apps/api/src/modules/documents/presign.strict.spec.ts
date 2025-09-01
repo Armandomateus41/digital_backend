@@ -49,11 +49,20 @@ describe('Presigned URL com STRICT_STORAGE=true', () => {
 
   it('STRICT_STORAGE=true e storageKey vazio => 409/503 código coerente', async () => {
     process.env.STRICT_STORAGE = 'true';
-    const res = await request(app.getHttpServer())
+    const server = app.getHttpServer() as unknown as Parameters<
+      typeof request
+    >[0];
+    const res = await request(server)
       .get(`/documents/${docId}/certificate-url`)
       .set('Authorization', `Bearer ${token}`)
       .expect((r) => [409, 503].includes(r.status));
-    const code = typeof res.body?.code === 'string' ? res.body.code : '';
+    const body: unknown = res.body;
+    const code =
+      body &&
+      typeof body === 'object' &&
+      typeof (body as { code?: unknown }).code === 'string'
+        ? (body as { code: string }).code
+        : '';
     expect(['STORAGE_UNAVAILABLE', 'CERTIFICATE_UNAVAILABLE']).toContain(code);
   });
 });

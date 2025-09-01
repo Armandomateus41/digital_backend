@@ -63,7 +63,10 @@ describe('DocumentsController - cache 304', () => {
 
   it('upload PDF inválido retorna 409 INVALID_PDF_SIGNATURE', async () => {
     const bad = Buffer.from('not-a-pdf');
-    const res = await request(app.getHttpServer())
+    const server = app.getHttpServer() as unknown as Parameters<
+      typeof request
+    >[0];
+    const res = await request(server)
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
       .attach('file', bad, {
@@ -72,7 +75,13 @@ describe('DocumentsController - cache 304', () => {
       })
       .field('title', 'Bad')
       .expect(409);
-    const code = typeof res.body?.code === 'string' ? res.body.code : '';
+    const body: unknown = res.body;
+    const code =
+      body &&
+      typeof body === 'object' &&
+      typeof (body as { code?: unknown }).code === 'string'
+        ? (body as { code: string }).code
+        : '';
     expect(code).toBe('INVALID_PDF_SIGNATURE');
   });
 });

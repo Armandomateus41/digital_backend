@@ -9,21 +9,45 @@ import { MulterExceptionFilter } from './common/filters/multer-exception.filter'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 // Tracing opcional via OpenTelemetry
-const otelEnabled = (process.env.OTEL_ENABLED ?? 'false').toLowerCase() === 'true';
+const otelEnabled =
+  (process.env.OTEL_ENABLED ?? 'false').toLowerCase() === 'true';
 if (otelEnabled) {
-  (async () => {
+  void (async () => {
     try {
       const sdkModule: unknown = await import('@opentelemetry/sdk-node');
-      const exporterModule: unknown = await import('@opentelemetry/exporter-trace-otlp-http');
-      const autoModule: unknown = await import('@opentelemetry/auto-instrumentations-node');
-      const NodeSDK = (sdkModule as { NodeSDK: new (args: unknown) => { start: () => void; shutdown: () => void } }).NodeSDK;
-      const OTLPTraceExporter = (exporterModule as { OTLPTraceExporter: new (args: unknown) => unknown }).OTLPTraceExporter;
-      const getNodeAutoInstrumentations = (autoModule as { getNodeAutoInstrumentations: () => unknown }).getNodeAutoInstrumentations;
-      const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces';
+      const exporterModule: unknown = await import(
+        '@opentelemetry/exporter-trace-otlp-http'
+      );
+      const autoModule: unknown = await import(
+        '@opentelemetry/auto-instrumentations-node'
+      );
+      const NodeSDK = (
+        sdkModule as {
+          NodeSDK: new (args: unknown) => {
+            start: () => void;
+            shutdown: () => void;
+          };
+        }
+      ).NodeSDK;
+      const OTLPTraceExporter = (
+        exporterModule as { OTLPTraceExporter: new (args: unknown) => unknown }
+      ).OTLPTraceExporter;
+      const getNodeAutoInstrumentations = (
+        autoModule as { getNodeAutoInstrumentations: () => unknown }
+      ).getNodeAutoInstrumentations;
+      const endpoint =
+        process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
+        'http://localhost:4318/v1/traces';
       const serviceName = process.env.SERVICE_NAME || 'digisign-api';
-      const sdk = new NodeSDK({ traceExporter: new OTLPTraceExporter({ url: endpoint }), serviceName, instrumentations: [getNodeAutoInstrumentations()] });
+      const sdk = new NodeSDK({
+        traceExporter: new OTLPTraceExporter({ url: endpoint }),
+        serviceName,
+        instrumentations: [getNodeAutoInstrumentations()],
+      });
       sdk.start();
-      process.on('SIGTERM', () => { sdk.shutdown(); });
+      process.on('SIGTERM', () => {
+        sdk.shutdown();
+      });
     } catch {
       // ignore tracing init errors in production
     }
