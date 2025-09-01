@@ -30,9 +30,11 @@
     "lint-staged": "^16.1.5"
   },
   "lint-staged": {
-    "apps/api/src/**/*.{ts,tsx}": [
-      "pnpm -F @digisign/api lint",
-      "git add"
+    "apps/api/src/**/*.ts": [
+      "pnpm -F @digisign/api lint"
+    ],
+    "apps/api/**/*.{json,md,yml,yaml}": [
+      "prettier --write"
     ]
   }
 }
