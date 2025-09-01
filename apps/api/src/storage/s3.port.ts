@@ -7,5 +7,3 @@ export interface S3Port {
     expiresInSeconds?: number,
   ): Promise<string>;
 }
-
-

@@ -1,6 +1,7 @@
 import { ConflictException, ServiceUnavailableException } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import type { S3Port } from '../../storage/s3.port';
+import type { PrismaService } from '../../prisma/prisma.service';
 
 type MockedPrisma = {
   document: {
@@ -48,21 +49,29 @@ describe('DocumentsService (unit)', () => {
       storageKey: 'k',
       contentSha256: 'x',
     });
-    const svc = new DocumentsService(prisma as any, s3 as any);
+    const svc = new DocumentsService(
+      prisma as unknown as PrismaService,
+      s3 as unknown as S3Port,
+    );
     const file = {
       buffer: makePdf(),
       mimetype: 'application/pdf',
       size: 256,
     } as unknown as Express.Multer.File;
     const doc = await svc.upload({ title: 't', file, createdById: 'u1' });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(s3.readiness).toHaveBeenCalled();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(s3.putObject).toHaveBeenCalled();
     expect(prisma.document.create).toHaveBeenCalled();
     expect(doc.id).toBe('d1');
   });
 
   it('upload falha quando não é PDF (assinatura inválida)', async () => {
-    const svc = new DocumentsService(prisma as any, s3 as any);
+    const svc = new DocumentsService(
+      prisma as unknown as PrismaService,
+      s3 as unknown as S3Port,
+    );
     const notPdf = {
       buffer: Buffer.from('not-a-pdf'),
       mimetype: 'application/octet-stream',
@@ -75,7 +84,10 @@ describe('DocumentsService (unit)', () => {
 
   it('upload falha com DUPLICATE_CONTENT quando hash já existe', async () => {
     prisma.document.findUnique.mockResolvedValue({ id: 'existing' });
-    const svc = new DocumentsService(prisma as any, s3 as any);
+    const svc = new DocumentsService(
+      prisma as unknown as PrismaService,
+      s3 as unknown as S3Port,
+    );
     const file = {
       buffer: makePdf(),
       mimetype: 'application/pdf',
@@ -90,7 +102,10 @@ describe('DocumentsService (unit)', () => {
     s3.readiness.mockResolvedValue(false);
     const old = process.env.STRICT_STORAGE;
     process.env.STRICT_STORAGE = 'true';
-    const svc = new DocumentsService(prisma as any, s3 as any);
+    const svc = new DocumentsService(
+      prisma as unknown as PrismaService,
+      s3 as unknown as S3Port,
+    );
     const file = {
       buffer: makePdf(),
       mimetype: 'application/pdf',
@@ -104,7 +119,10 @@ describe('DocumentsService (unit)', () => {
 
   it('getCertificatePresignedUrl retorna URL quando storageKey existe', async () => {
     prisma.document.findUnique.mockResolvedValue({ id: 'd1', storageKey: 'k' });
-    const svc = new DocumentsService(prisma as any, s3 as any);
+    const svc = new DocumentsService(
+      prisma as unknown as PrismaService,
+      s3 as unknown as S3Port,
+    );
     const url = await svc.getCertificatePresignedUrl('d1');
     expect(url).toBe('https://presigned.example');
   });

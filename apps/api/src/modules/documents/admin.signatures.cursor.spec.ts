@@ -11,6 +11,7 @@ const d = HAS_DB ? describe : describe.skip;
 
 d('Admin signatures cursor', () => {
   let app: INestApplication;
+  let server: Parameters<typeof request>[0];
   let token: string;
 
   beforeAll(async () => {
@@ -19,7 +20,8 @@ d('Admin signatures cursor', () => {
     }).compile();
     app = moduleRef.createNestApplication();
     await app.init();
-    const login = (await request(app.getHttpServer())
+    server = app.getHttpServer() as unknown as Parameters<typeof request>[0];
+    const login = (await request(server)
       .post('/auth/login')
       .send({ identifier: 'admin@local.test', password: 'Admin@123' })
       .expect(200)) as unknown as { body?: { accessToken?: unknown } };
@@ -32,7 +34,7 @@ d('Admin signatures cursor', () => {
   });
 
   it('retorna nextCursor quando há muitos itens', async () => {
-    const list1 = (await request(app.getHttpServer())
+    const list1 = (await request(server)
       .get('/admin/signatures?limit=1')
       .set('Authorization', `Bearer ${token}`)
       .expect(200)) as unknown as { body?: { nextCursor?: unknown } };
@@ -44,7 +46,7 @@ d('Admin signatures cursor', () => {
       typeof next.id === 'string' &&
       typeof next.createdAt === 'string'
     ) {
-      await request(app.getHttpServer())
+      await request(server)
         .get(
           `/admin/signatures?limit=1&cursorId=${encodeURIComponent(next.id)}&cursorCreatedAt=${encodeURIComponent(next.createdAt)}`,
         )

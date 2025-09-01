@@ -14,6 +14,7 @@ const d = HAS_DB ? describe : describe.skip;
 
 d('Presigned URL com STRICT_STORAGE=true', () => {
   let app: INestApplication;
+  let server: Parameters<typeof request>[0];
   let token: string;
   let docId: string;
 
@@ -23,8 +24,9 @@ d('Presigned URL com STRICT_STORAGE=true', () => {
     }).compile();
     app = moduleRef.createNestApplication();
     await app.init();
+    server = app.getHttpServer() as unknown as Parameters<typeof request>[0];
 
-    const login = (await request(app.getHttpServer())
+    const login = (await request(server)
       .post('/auth/login')
       .send({ identifier: 'admin@local.test', password: 'Admin@123' })
       .expect(200)) as unknown as { body?: LoginBody };
@@ -35,7 +37,7 @@ d('Presigned URL com STRICT_STORAGE=true', () => {
       Buffer.from('%PDF-'),
       Buffer.from(String(Date.now() + Math.random())),
     ]);
-    const up = (await request(app.getHttpServer())
+    const up = (await request(server)
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
       .attach('file', uniquePdf, {

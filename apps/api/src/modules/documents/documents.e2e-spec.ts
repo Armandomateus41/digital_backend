@@ -11,6 +11,7 @@ type SignResponse = { body?: { hash?: unknown } };
 
 describe('Assinatura pública idempotente', () => {
   let app: INestApplication;
+  let server: Parameters<typeof request>[0];
   let token: string;
   let documentId: string;
 
@@ -20,15 +21,16 @@ describe('Assinatura pública idempotente', () => {
     }).compile();
     app = moduleRef.createNestApplication();
     await app.init();
+    server = app.getHttpServer() as unknown as Parameters<typeof request>[0];
 
-    const login = (await request(app.getHttpServer())
+    const login = (await request(server)
       .post('/auth/login')
       .send({ identifier: 'admin@local.test', password: 'Admin@123' })
       .expect(200)) as unknown as LoginResponse;
     token =
       typeof login.body?.accessToken === 'string' ? login.body.accessToken : '';
 
-    const upload = (await request(app.getHttpServer())
+    const upload = (await request(server)
       .post('/admin/documents')
       .set('Authorization', `Bearer ${token}`)
       .attach('file', Buffer.from('%PDF-1234567890'), {
@@ -46,12 +48,12 @@ describe('Assinatura pública idempotente', () => {
 
   it('POST /user/sign com mesma Idempotency-Key retorna 200 com mesmo hash', async () => {
     const key = 'e2e-key-1';
-    const r1 = (await request(app.getHttpServer())
+    const r1 = (await request(server)
       .post('/user/sign')
       .set('Idempotency-Key', key)
       .send({ documentId, cpf: '123.456.789-09' })
       .expect(200)) as unknown as SignResponse;
-    const r2 = (await request(app.getHttpServer())
+    const r2 = (await request(server)
       .post('/user/sign')
       .set('Idempotency-Key', key)
       .send({ documentId, cpf: '123.456.789-09' })
