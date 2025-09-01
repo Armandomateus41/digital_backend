@@ -1,5 +1,6 @@
 import { ConflictException, ServiceUnavailableException } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
+import type { S3Port } from '../../storage/s3.port';
 
 type MockedPrisma = {
   document: {
@@ -9,12 +10,7 @@ type MockedPrisma = {
   signature?: unknown;
 };
 
-type MockedS3 = {
-  readiness: jest.Mock<Promise<boolean>>;
-  putObject: jest.Mock<Promise<void>>;
-  deleteObject: jest.Mock<Promise<void>>;
-  createPresignedDownloadUrl: jest.Mock<Promise<string>>;
-};
+type MockedS3 = jest.Mocked<S3Port>;
 
 function makePdf(bytes = 128, salt = Date.now().toString()) {
   const header = Buffer.from('%PDF-');
@@ -94,7 +90,7 @@ describe('DocumentsService (unit)', () => {
     s3.readiness.mockResolvedValue(false);
     const old = process.env.STRICT_STORAGE;
     process.env.STRICT_STORAGE = 'true';
-    const svc = new DocumentsService(prisma as any, s3);
+    const svc = new DocumentsService(prisma as any, s3 as any);
     const file = {
       buffer: makePdf(),
       mimetype: 'application/pdf',
@@ -108,7 +104,7 @@ describe('DocumentsService (unit)', () => {
 
   it('getCertificatePresignedUrl retorna URL quando storageKey existe', async () => {
     prisma.document.findUnique.mockResolvedValue({ id: 'd1', storageKey: 'k' });
-    const svc = new DocumentsService(prisma as any, s3);
+    const svc = new DocumentsService(prisma as any, s3 as any);
     const url = await svc.getCertificatePresignedUrl('d1');
     expect(url).toBe('https://presigned.example');
   });

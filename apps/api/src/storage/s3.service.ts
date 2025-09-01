@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { S3Port } from './s3.port';
 import {
   S3Client,
   PutObjectCommand,
@@ -9,7 +10,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
-export class S3Service {
+export class S3Service implements S3Port {
   private readonly client: S3Client;
   private readonly bucket: string;
 

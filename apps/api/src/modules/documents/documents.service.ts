@@ -2,9 +2,11 @@ import {
   ConflictException,
   Injectable,
   ServiceUnavailableException,
+  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { S3Service } from '../../storage/s3.service';
+import type { S3Port } from '../../storage/s3.port';
 import { createHash, randomUUID } from 'crypto';
 
 @Injectable()
@@ -13,7 +15,7 @@ export class DocumentsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly s3: S3Service,
+    @Inject(S3Service) private readonly s3: S3Port,
   ) {
     this.strictStorage =
       (process.env.STRICT_STORAGE ?? 'false').toLowerCase() === 'true';
