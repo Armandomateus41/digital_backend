@@ -11,6 +11,7 @@ export class MetricsService implements OnModuleInit {
   public readonly registry: Registry;
   public readonly httpRequestDuration: Histogram<string>;
   public readonly httpRequestsTotal: Counter<string>;
+  public readonly httpRequestsErrorsTotal: Counter<string>;
 
   constructor() {
     this.registry = new Registry();
@@ -27,6 +28,13 @@ export class MetricsService implements OnModuleInit {
     this.httpRequestsTotal = new Counter({
       name: 'http_requests_total',
       help: 'Total de requests HTTP',
+      labelNames: ['method', 'route', 'status_code'],
+      registers: [this.registry],
+    });
+
+    this.httpRequestsErrorsTotal = new Counter({
+      name: 'http_requests_errors_total',
+      help: 'Total de requests HTTP com erro 5xx',
       labelNames: ['method', 'route', 'status_code'],
       registers: [this.registry],
     });

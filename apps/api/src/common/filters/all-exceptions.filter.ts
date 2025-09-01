@@ -8,10 +8,12 @@ import {
   PayloadTooLargeException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { MetricsService } from '../../metrics/metrics.service';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
+  constructor(private readonly metrics?: MetricsService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -56,17 +58,40 @@ export class AllExceptionsFilter implements ExceptionFilter {
       stack,
     );
 
+    const statusNumber = Number(status);
     response
       .status(status)
       .header('Content-Type', 'application/problem+json')
       .json({
-        type: `https://httpstatuses.com/${status}`,
-        title: HttpStatus[status] ?? 'Error',
-        status,
+        type: `https://httpstatuses.com/${statusNumber}`,
+        title:
+          typeof (HttpStatus as unknown as Record<number, unknown>)[
+            statusNumber
+          ] === 'string'
+            ? ((HttpStatus as unknown as Record<number, unknown>)[
+                statusNumber
+              ] as string)
+            : 'Error',
+        status: statusNumber,
         code,
         detail: message,
         instance: request.url,
         requestId: request.requestId ?? undefined,
       });
+
+    if (statusNumber >= 500 && this.metrics) {
+      const method =
+        typeof request.method === 'string' ? request.method : 'GET';
+      const routePath =
+        typeof (request as { route?: { path?: unknown } })?.route?.path ===
+        'string'
+          ? ((request as { route?: { path?: unknown } }).route!.path! as string)
+          : typeof request.path === 'string'
+            ? request.path
+            : 'unknown';
+      this.metrics.httpRequestsErrorsTotal
+        .labels({ method, route: routePath, status_code: String(statusNumber) })
+        .inc();
+    }
   }
 }

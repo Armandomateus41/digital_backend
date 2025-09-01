@@ -11,30 +11,23 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 // Tracing opcional via OpenTelemetry
 const otelEnabled = (process.env.OTEL_ENABLED ?? 'false').toLowerCase() === 'true';
 if (otelEnabled) {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { NodeSDK } = require('@opentelemetry/sdk-node');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
-    const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces';
-    const serviceName = process.env.SERVICE_NAME || 'digisign-api';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const sdk = new NodeSDK({
-      traceExporter: new OTLPTraceExporter({ url: endpoint }),
-      serviceName,
-      instrumentations: [getNodeAutoInstrumentations()],
-    });
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sdk.start();
-    process.on('SIGTERM', () => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      sdk.shutdown();
-    });
-  } catch (e) {
-    // ignore tracing init errors in production
-  }
+  (async () => {
+    try {
+      const sdkModule: unknown = await import('@opentelemetry/sdk-node');
+      const exporterModule: unknown = await import('@opentelemetry/exporter-trace-otlp-http');
+      const autoModule: unknown = await import('@opentelemetry/auto-instrumentations-node');
+      const NodeSDK = (sdkModule as { NodeSDK: new (args: unknown) => { start: () => void; shutdown: () => void } }).NodeSDK;
+      const OTLPTraceExporter = (exporterModule as { OTLPTraceExporter: new (args: unknown) => unknown }).OTLPTraceExporter;
+      const getNodeAutoInstrumentations = (autoModule as { getNodeAutoInstrumentations: () => unknown }).getNodeAutoInstrumentations;
+      const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces';
+      const serviceName = process.env.SERVICE_NAME || 'digisign-api';
+      const sdk = new NodeSDK({ traceExporter: new OTLPTraceExporter({ url: endpoint }), serviceName, instrumentations: [getNodeAutoInstrumentations()] });
+      sdk.start();
+      process.on('SIGTERM', () => { sdk.shutdown(); });
+    } catch {
+      // ignore tracing init errors in production
+    }
+  })();
 }
 
 async function bootstrap() {
