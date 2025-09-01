@@ -21,12 +21,18 @@ jobs:
           cache: pnpm
       - run: pnpm i --frozen-lockfile
       - name: Run commitlint
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
         run: |
           pnpm dlx commitlint --version
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            range="origin/${{ github.base_ref }}..HEAD"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            FROM="$PR_BASE"; TO="$PR_HEAD"
           else
-            range="HEAD~20..HEAD"
+            FROM="$PUSH_BEFORE"; TO="$PUSH_AFTER"
           fi
-          echo "Checking range: $range"
-          pnpm dlx commitlint --from $(echo $range | cut -d'.' -f1) --to $(echo $range | awk -F'..' '{print $2}')
+          echo "Checking range: $FROM..$TO"
+          pnpm dlx commitlint --from "$FROM" --to "$TO"
