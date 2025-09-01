@@ -3,12 +3,16 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../../app.module';
 
+const HAS_DB = Boolean(process.env.DATABASE_URL);
+
 jest.setTimeout(30000);
 
 type LoginBody = { accessToken?: unknown };
 type UploadBody = { id?: unknown };
 
-describe('Presigned URL com STRICT_STORAGE=true', () => {
+const d = HAS_DB ? describe : describe.skip;
+
+d('Presigned URL com STRICT_STORAGE=true', () => {
   let app: INestApplication;
   let token: string;
   let docId: string;

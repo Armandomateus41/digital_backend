@@ -3,9 +3,13 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../../app.module';
 
+const HAS_DB = Boolean(process.env.DATABASE_URL);
+
 jest.setTimeout(30000);
 
-describe('Admin signatures cursor', () => {
+const d = HAS_DB ? describe : describe.skip;
+
+d('Admin signatures cursor', () => {
   let app: INestApplication;
   let token: string;
 
