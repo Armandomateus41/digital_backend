@@ -1,0 +1,4 @@
+@echo off
+REM Husky commit-msg hook for Windows PowerShell
+pwsh -NoProfile -ExecutionPolicy Bypass -Command "pnpm exec commitlint --edit %1" || exit /b 1
+

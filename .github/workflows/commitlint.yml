@@ -1,0 +1,32 @@
+name: Commitlint
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.6.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm i --frozen-lockfile
+      - name: Run commitlint
+        run: |
+          pnpm dlx commitlint --version
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            range="origin/${{ github.base_ref }}..HEAD"
+          else
+            range="HEAD~20..HEAD"
+          fi
+          echo "Checking range: $range"
+          pnpm dlx commitlint --from $(echo $range | cut -d'.' -f1) --to $(echo $range | awk -F'..' '{print $2}')

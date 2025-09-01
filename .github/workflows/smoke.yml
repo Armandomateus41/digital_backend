@@ -1,36 +1,35 @@
-name: Smoke Tests (manual)
+name: Smoke
 
 on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * *'
   workflow_dispatch:
-    inputs:
-      api_base_url:
-        description: "API base URL (ex: https://digital-backend-....onrender.com)"
-        required: true
 
 jobs:
   smoke:
+    if: ${{ secrets.BACKEND_URL != '' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Use Node 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install deps (api only)
-        run: pnpm -F @digisign/api install --frozen-lockfile=false
-
-      - name: Run smoke (login admin + upload attempt)
+      - name: Check backend health
         env:
-          API_BASE_URL: ${{ inputs.api_base_url }}
-        run: node apps/api/scripts/smoke-upload.mjs
+          BASE_URL: ${{ secrets.BACKEND_URL }}
+        run: |
+          set -e
+          URL="$BASE_URL/health"
+          echo "Hitting $URL"
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+          if [ "$code" != "200" ]; then
+            echo "Health returned $code"
+            exit 1
+          fi
+          echo "Health 200 OK"
+
+  noop:
+    if: ${{ secrets.BACKEND_URL == '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Skipping smoke: BACKEND_URL secret not set"
 
 

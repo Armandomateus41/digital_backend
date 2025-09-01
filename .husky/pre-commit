@@ -1,0 +1,16 @@
+﻿@echo off
+REM Husky pre-commit hook for Windows PowerShell
+pwsh -NoProfile -ExecutionPolicy Bypass -Command "pnpm exec lint-staged" || exit /b 1
+1
+0
+3
+4
+54
+5
+56
+6
+6
+6
+6
+6
+6
