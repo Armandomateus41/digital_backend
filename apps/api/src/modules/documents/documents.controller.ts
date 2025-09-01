@@ -144,6 +144,8 @@ export class DocumentsController {
       typeof req.query['cursorCreatedAt'] === 'string'
         ? req.query['cursorCreatedAt']
         : undefined;
+    const format =
+      typeof req.query['format'] === 'string' ? req.query['format'] : undefined;
     const limit =
       typeof limitRaw === 'string'
         ? Math.min(Math.max(parseInt(limitRaw, 10) || 50, 1), 100)
@@ -152,7 +154,12 @@ export class DocumentsController {
       cursorId && cursorCreatedAtRaw
         ? { id: cursorId, createdAt: new Date(cursorCreatedAtRaw) }
         : undefined;
-    return this.documents.listSignatures(limit, cursor);
+    const data = await this.documents.listSignatures(limit, cursor);
+    // Compatibilidade: se não pedir envelope, retorna array puro
+    if (format !== 'envelope') {
+      return data.items;
+    }
+    return data;
   }
 
   @Post('admin/documents/:id/signatures')
