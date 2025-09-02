@@ -38,7 +38,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.62.1",
     "@opentelemetry/exporter-trace-otlp-http": "^0.203.0",
     "@opentelemetry/sdk-node": "^0.203.0",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.15.0",
     "@types/multer": "^2.0.0",
     "@types/passport-jwt": "^4.0.1",
     "bcryptjs": "^3.0.2",
